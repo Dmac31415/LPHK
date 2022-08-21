@@ -209,6 +209,7 @@ class Main_Window(tk.Frame):
             # search for a startup layout and load it
             if os.path.isfile(os.path.join(files.LAYOUT_PATH, "startup.lpl")):
                 files.load_layout_to_lp(os.path.join(files.LAYOUT_PATH, "startup.lpl"))
+                root.iconify()
 
     def disconnect_lp(self):
         global lp_connected
