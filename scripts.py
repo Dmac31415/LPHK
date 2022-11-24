@@ -10,7 +10,7 @@ DELAY_EXIT_CHECK = 0.025
 
 import files
 
-VALID_COMMANDS = ["@ASYNC", "@SIMPLE", "@LOAD_LAYOUT", "STRING", "DELAY", "TAP", "PRESS", "RELEASE", "WEB", "WEB_NEW", "CODE", "SOUND", "SOUND_STOP", "WAIT_UNPRESSED", "M_MOVE", "M_SET", "M_SCROLL", "M_LINE", "M_LINE_MOVE", "M_LINE_SET", "LABEL", "IF_PRESSED_GOTO_LABEL", "IF_UNPRESSED_GOTO_LABEL", "GOTO_LABEL", "REPEAT_LABEL", "IF_PRESSED_REPEAT_LABEL", "IF_UNPRESSED_REPEAT_LABEL", "M_STORE", "M_RECALL", "M_RECALL_LINE", "OPEN", "RELEASE_ALL", "RESET_REPEATS"]
+VALID_COMMANDS = ["@ASYNC", "@SIMPLE", "@LOAD_LAYOUT", "EXIT", "STRING", "DELAY", "TAP", "PRESS", "RELEASE", "WEB", "WEB_NEW", "CODE", "SOUND", "SOUND_STOP", "WAIT_UNPRESSED", "M_MOVE", "M_SET", "M_SCROLL", "M_LINE", "M_LINE_MOVE", "M_LINE_SET", "LABEL", "IF_PRESSED_GOTO_LABEL", "IF_UNPRESSED_GOTO_LABEL", "GOTO_LABEL", "REPEAT_LABEL", "IF_PRESSED_REPEAT_LABEL", "IF_UNPRESSED_REPEAT_LABEL", "M_STORE", "M_RECALL", "M_RECALL_LINE", "OPEN", "RELEASE_ALL", "RESET_REPEATS"]
 ASYNC_HEADERS = ["@ASYNC", "@SIMPLE"]
 
 threads = [[None for y in range(9)] for x in range(9)]
@@ -110,6 +110,7 @@ def run_script_and_run_next(script_in, x_in, y_in):
 def run_script(script_str, x, y):
     global running
     global exit
+    shutdown = False
 
     lp_colors.updateXY(x, y)
     coords = "(" + str(x) + ", " + str(y) + ")"
@@ -154,6 +155,7 @@ def run_script(script_str, x, y):
         
         def main_logic(idx):
             nonlocal m_pos
+            shutdown = False
             
             if check_kill(x, y, is_async):
                 return idx + 1
@@ -165,7 +167,10 @@ def run_script(script_str, x, y):
                 print("[scripts] " + coords + "    Comment: " + line[1:])
             else:
                 split_line = line.split(" ")
-                if split_line[0] == "STRING":
+                if split_line[0] == "EXIT":
+                    # run = False
+                    shutdown = True
+                elif split_line[0] == "STRING":
                     type_string = " ".join(split_line[1:])
                     print("[scripts] " + coords + "    Type out string " + type_string)
                     kb.write(type_string)
@@ -479,12 +484,12 @@ def run_script(script_str, x, y):
                         repeats[i] = repeats_original[i]
                 else:
                     print("[scripts] " + coords + "    Invalid command: " + split_line[0] + ", skipping...")
-            return idx + 1
+            return idx + 1, shutdown
         run = True
         idx = 0
         while run:
-            idx = main_logic(idx)
-            if (idx < 0) or (idx >= len(script_lines)):
+            idx, shutdown = main_logic(idx)
+            if (idx < 0) or (idx >= len(script_lines)) or shutdown:
                 run = False
                 
         if not is_async:
@@ -492,6 +497,9 @@ def run_script(script_str, x, y):
         threading.Timer(EXIT_UPDATE_DELAY, lp_colors.updateXY, (x, y)).start()
     
     print("[scripts] (" + str(x) + ", " + str(y) + ") Script done running.")
+    if shutdown:
+        print("[scripts] Shutting down from button press...")
+        files.exit()
     
 
 def bind(x, y, script_down, color):

@@ -5,7 +5,7 @@ import os, sys
 from functools import partial
 import webbrowser
 
-import scripts, files, lp_colors, lp_events
+import scripts, files, lp_colors, lp_events, logger
 from utils import launchpad_connector as lpcon
 
 BUTTON_SIZE = 40
@@ -126,6 +126,8 @@ class Main_Window(tk.Frame):
         display_info = lambda: self.popup(self, "About LPHK", self.about_image, "A Novation Launchpad Macro Scripting System\nMade by Ella Jameson (nimaid)\n\nVersion: " + VERSION + "\nFile format version: " + files.FILE_VERSION, "Done")
         self.m_Help.add_command(label="About LPHK", command=display_info)
         self.m.add_cascade(label="Help", menu=self.m_Help)
+        exit_confirm = lambda: self.popup_choice(self, "Shutdown", self.warning_image, "Are you sure you want to exit the application?", [["No", None], ["Yes", close]])
+        self.m.add_command(label="Exit", command=exit_confirm)
 
         c_gap = int(BUTTON_SIZE // 4)
 

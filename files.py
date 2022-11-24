@@ -199,3 +199,7 @@ def open_file_folder(path):
             subprocess.Popen(["xdg-open", path])
     except:
         print("[files] Could not open file or folder " + path)
+
+def exit():
+    print("[files] shutting down")
+    window.close()
